@@ -88,16 +88,16 @@ Algorithm:
 
 The boards are parsed from the input file.
 
-* *`#'read-boards`* : open the file and read in each board, also parse each one 
-                     with *`#'parse-board`*
+* `#'read-boards` : open the file and read in each board, also parse each one 
+                    with `#'parse-board`
 
 For each board:
 
 Start with a single layout with one house per strawberry, giving us, say, n 
 houses to start with.
 
-* *`#'parse-board`* : takes a board and provides a layout with one greenhouse per 
-                       strawberry, parsed from the text from the file
+* `#'parse-board` : takes a board and provides a layout with one greenhouse per 
+                    strawberry, parsed from the text from the file
 
 Now we don't have to think about strawberries, only ways to reduce the number of 
 houses, at the risk of enclosing space where there was no strawberry (creating 
@@ -107,9 +107,9 @@ Subject to some pruning of the search space, try merging different pairs of
 houses together in different ways to get several layouts with less houses. This 
 is called a reduction.
 
-* *`#'merge-houses`* : takes two houses and returns a new house that encloses both
+* `#'merge-houses` : takes two houses and returns a new house that encloses both
 
-* *`#'merge-waste`*  : how much space is wasted by the merge, e.g.
+* `#'merge-waste`  : how much space is wasted by the merge, e.g.
 
         ....                          ....
         ..A.                          .AA.
@@ -133,8 +133,8 @@ The search space is very wide, but not very deep. A depth first search will
 require less intermediate storage for the "to do" list of layouts to consider 
 reducing.
 
-* *`#'depth-first-search`* : takes a board and searches for the best layout of 
-                              greenhouses for it.
+* `#'depth-first-search` : takes a board and searches for the best layout of 
+                            greenhouses for it.
 
 Reducing the search space:
 ==========================
@@ -148,15 +148,15 @@ greenhouses below the maximum number allowed.
   another greenhouse. This also protects us from generating layouts where 
   greenhouses overlap.
 
-  *`#'safe-merges`* : filter a list of merges and return only those that don't 
-                       overlap with another house in the layout.
+  `#'safe-merges` : filter a list of merges and return only those that don't 
+                    overlap with another house in the layout.
 
 * Perform trivial merges regularly without trying each combination (but don't 
   merge contested houses). These are a no-brainer because the cost function 
   favors fewer houses if no extra space is wasted (actually, 9 or less extra 
   spaces are wasted).
 
-  *`#'trivial-merges`* : perform all such merges possible, e.g.
+  `#'trivial-merges` : perform all such merges possible, e.g.
 
         ....             ....
         .A..             .A..
@@ -176,8 +176,8 @@ greenhouses below the maximum number allowed.
   means that if there are several possible reductions of a layout, only those 
   with the least amount of wasted space will be considered.
 
-  *`#'least-waste-merges`* : filter a set of candidate merges leaving only those 
-                              which introduce the least amount of wasted space.
+  `#'least-waste-merges` : filter a set of candidate merges leaving only those 
+                           which introduce the least amount of wasted space.
 
 
 
