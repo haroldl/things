@@ -1,0 +1,166 @@
+OpenMCL, (runme 5)
+
+1)
+
+First time, with the bad performance implementation of INTERSECT-HOUSES.
+In this code, it needs to scan the houses list 4 times.
+Based on the profiling, this is the bottle-neck for the program.
+By combining the 4 scans of houses into one LOOP macro, we see the time 
+needed to run the program go down by over 45%!
+
+(defun intersect-houses (&rest houses)
+  "Find the intersection, if any, between space covered by the houses."
+  (let ((x1 (apply #'max (mapcar #'house-x1 houses)))
+        (x2 (apply #'min (mapcar #'house-x2 houses)))
+        (y1 (apply #'max (mapcar #'house-y1 houses)))
+        (y2 (apply #'min (mapcar #'house-y2 houses))))
+    (when (and (>= x2 x1) (>= y2 y1))
+      (make-house :x1 x1 :x2 x2 :y1 y1 :y2 y2))))
+
+                                                         Cons   
+                       %      %                          Per      Total     Total
+Function              Time   Cons    Calls  Sec/Call     Call     Time      Cons
+------------------------------------------------------------------------------------
+INTERSECT-HOUSES:    43.26   28.18   301017  0.000103      364    31.144   109531728
+MERGE-HOUSES:        12.78    9.19    98876  0.000093      361     9.204    35718072
+SAFE-MERGES:          9.49    7.18     1266  0.005397    22048     6.832    27912864
+MAKE-LAYOUT-LOOKUP:   9.10   25.80     5297  0.001238    18931     6.555   100275472
+EXPAND-HOUSE:         7.94   21.22    42137  0.000136     1958     5.717    82498560
+TRIVIAL-MERGES:       2.70    3.92     5050  0.000384     3018     1.941    15241032
+HOUSE-Y1:             2.61    0.00   758141  0.000002        0     1.877           0
+HOUSE-Y2:             2.51    0.00   758141  0.000002        0     1.809           0
+HOUSE-X1:             2.39    0.00   758141  0.000002        0     1.723           0
+HOUSE-X2:             2.36    0.00   758141  0.000002        0     1.697           0
+MAKE-HOUSE:           1.09    1.41   228681  0.000003       24     0.783     5488344
+------------------------------------------------------------------------------------
+TOTAL:               96.23   96.90  3714888                       69.284   376666072
+Estimated monitoring overhead: 34.92 seconds
+Estimated total monitoring overhead: 37.54 seconds
+The following monitored functions were not called:
+ BOARD-FIELD-MAP BOARD-HEIGHT BOARD-LAYOUT BOARD-MAX-HOUSES BOARD-P BOARD-WIDTH
+ CONTESTED-HOUSE-P COPY-BOARD COPY-HOUSE EST-SPACE MERGES-CONTAINING RUN-TRIV
+ RUNALL SORT-LAYOUT
+
+
+
+2)
+
+Replaced INTERSECT-HOUSES with this code:
+
+
+                                                         Cons   
+                       %      %                          Per      Total     Total
+Function              Time   Cons    Calls  Sec/Call     Call     Time      Cons
+------------------------------------------------------------------------------------
+MERGE-HOUSES:        23.65   12.22    98876  0.000093      361     9.193    35718072
+SAFE-MERGES:         17.39    9.55     1266  0.005339    22048     6.759    27912864
+MAKE-LAYOUT-LOOKUP:  16.32   34.30     5297  0.001197    18931     6.342   100275472
+EXPAND-HOUSE:        14.86   28.22    42137  0.000137     1958     5.776    82498560
+INTERSECT-HOUSES:     6.25    4.52   301017  0.000008       44     2.430    13206288
+TRIVIAL-MERGES:       4.86    5.21     5050  0.000374     3018     1.888    15241032
+MAKE-HOUSE:           2.76    1.88   228681  0.000005       24     1.073     5488344
+PERFORM-MERGE:        1.76    0.78     5048  0.000135      452     0.684     2280360
+HOUSE-P:              1.63    0.00   163126  0.000004        0     0.635           0
+HOUSE-Y2:             1.58    0.00   156107  0.000004        0     0.613           0
+HOUSE-Y1:             1.52    0.00   156107  0.000004        0     0.590           0
+HOUSE-X1:             1.34    0.00   156107  0.000003        0     0.519           0
+HOUSE-X2:             1.33    0.00   156107  0.000003        0     0.518           0
+MERGE-WASTE:          1.32    0.56     9224  0.000056      176     0.514     1623424
+------------------------------------------------------------------------------------
+TOTAL:               96.58   97.22  1484150                       37.535   284244416
+Estimated monitoring overhead: 11.58 seconds
+Estimated total monitoring overhead: 12.37 seconds
+The following monitored functions were not called:
+ BOARD-FIELD-MAP BOARD-HEIGHT BOARD-LAYOUT BOARD-MAX-HOUSES BOARD-P BOARD-WIDTH
+ CONTESTED-HOUSE-P COPY-BOARD COPY-HOUSE EST-SPACE MERGES-CONTAINING RUN-TRIV
+ RUNALL SORT-LAYOUT
+
+
+
+
+3)
+
+Interestingly, applying the same change to the new leader in cost, MERGE-HOUSES, 
+increases the program's run time. Since MERGE-HOUSES was only being called with 
+short lists, the overhead of scanning the lists 4 times instead of once is outweighed 
+by additional consing in the LOOP macro.
+
+Replaced this:
+
+(defun merge-houses (&rest houses)
+  "Find the bounding rectangle of two greenhouses"
+  (let ((x1 (apply #'min (mapcar #'house-x1 houses)))
+        (x2 (apply #'max (mapcar #'house-x2 houses)))
+        (y1 (apply #'min (mapcar #'house-y1 houses)))
+        (y2 (apply #'max (mapcar #'house-y2 houses))))
+    (make-house :x1 x1 :x2 x2 :y1 y1 :y2 y2)))
+
+With this:
+
+(defun merge-houses (&rest houses)
+  "Find the bounding rectangle of two or more greenhouses"
+  (loop for h in houses
+     minimize (house-x1 h) into x1
+     maximize (house-x2 h) into x2
+     minimize (house-y1 h) into y1
+     maximize (house-y2 h) into y2
+     finally (return (make-house :x1 x1 :x2 x2 :y1 y1 :y2 y2))))
+
+And got these results:
+
+
+                                                         Cons   
+                       %      %                          Per      Total     Total
+Function              Time   Cons    Calls  Sec/Call     Call     Time      Cons
+------------------------------------------------------------------------------------
+MERGE-HOUSES:        24.53   18.10    98876  0.000103      684    10.187    67658008
+SAFE-MERGES:         18.16   13.39     1266  0.005957    39526     7.541    50040360
+MAKE-LAYOUT-LOOKUP:  15.41   26.84     5297  0.001208    18939     6.400   100317848
+EXPAND-HOUSE:        14.25   22.66    42137  0.000140     2010     5.919    84684544
+INTERSECT-HOUSES:     6.40    5.20   301017  0.000009       65     2.658    19432312
+TRIVIAL-MERGES:       4.75    5.14     5050  0.000390     3803     1.971    19202696
+MAKE-HOUSE:           2.52    1.96   228681  0.000005       32     1.048     7317792
+PERFORM-MERGE:        1.86    1.23     5048  0.000153      911     0.772     4598176
+HOUSE-X1:             1.67    0.33   156107  0.000004        8     0.693     1248856
+HOUSE-Y2:             1.48    0.33   156107  0.000004        8     0.614     1248856
+HOUSE-Y1:             1.44    0.33   156107  0.000004        8     0.598     1248856
+HOUSE-P:              1.38    0.35   163126  0.000004        8     0.575     1305008
+MERGE-WASTE:          1.30    0.87     9224  0.000059      353     0.541     3254336
+HOUSE-X2:             1.24    0.33   156107  0.000003        8     0.516     1248856
+------------------------------------------------------------------------------------
+TOTAL:               96.41   97.07  1484150                       40.034   362806504
+Estimated monitoring overhead: 11.58 seconds
+Estimated total monitoring overhead: 12.37 seconds
+The following monitored functions were not called:
+ BOARD-FIELD-MAP BOARD-HEIGHT BOARD-LAYOUT BOARD-MAX-HOUSES BOARD-P BOARD-WIDTH
+ CONTESTED-HOUSE-P COPY-BOARD COPY-HOUSE EST-SPACE MERGES-CONTAINING RUN-TRIV
+ RUNALL SORT-LAYOUT
+
+versus:
+
+                                                         Cons   
+                       %      %                          Per      Total     Total
+Function              Time   Cons    Calls  Sec/Call     Call     Time      Cons
+------------------------------------------------------------------------------------
+MERGE-HOUSES:        24.16   14.45    98876  0.000098      494     9.649    48872952
+SAFE-MERGES:         17.89   11.85     1266  0.005643    31660     7.144    40081632
+MAKE-LAYOUT-LOOKUP:  15.95   29.67     5297  0.001202    18939     6.369   100317848
+EXPAND-HOUSE:        14.46   24.80    42137  0.000137     1990     5.776    83846944
+INTERSECT-HOUSES:     6.18    5.24   301017  0.000008       59     2.467    17711928
+TRIVIAL-MERGES:       4.75    5.16     5050  0.000376     3452     1.899    17431112
+MAKE-HOUSE:           2.54    2.16   228681  0.000004       32     1.014     7317792
+PERFORM-MERGE:        1.76    1.06     5048  0.000140      707     0.705     3567808
+HOUSE-X2:             1.64    0.37   156107  0.000004        8     0.656     1248856
+HOUSE-P:              1.63    0.39   163126  0.000004        8     0.651     1305008
+HOUSE-X1:             1.58    0.37   156107  0.000004        8     0.631     1248856
+HOUSE-Y1:             1.41    0.37   156107  0.000004        8     0.564     1248856
+MERGE-WASTE:          1.32    0.76     9224  0.000057      280     0.526     2582720
+HOUSE-Y2:             1.29    0.37   156107  0.000003        8     0.513     1248856
+------------------------------------------------------------------------------------
+TOTAL:               96.56   97.01  1484150                       38.565   328031168
+Estimated monitoring overhead: 11.58 seconds
+Estimated total monitoring overhead: 12.37 seconds
+The following monitored functions were not called:
+ BOARD-FIELD-MAP BOARD-HEIGHT BOARD-LAYOUT BOARD-MAX-HOUSES BOARD-P BOARD-WIDTH
+ CONTESTED-HOUSE-P COPY-BOARD COPY-HOUSE EST-SPACE MERGES-CONTAINING RUN-TRIV
+ RUNALL SORT-LAYOUT
