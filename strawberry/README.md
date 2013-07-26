@@ -64,39 +64,39 @@ Here is their description of the problem:
 Terminology:
 ============
 
-board - A board is a problem to be solved, read from the input file, consisting 
-        of a map of a field with strawberries in it to be covered and a maximum 
-        number of greenhouses allowed.
+* board - A board is a problem to be solved, read from the input file, consisting 
+          of a map of a field with strawberries in it to be covered and a maximum 
+          number of greenhouses allowed.
 
-        (defstruct board ...)
+          (defstruct board ...)
 
-        Local variable names: board, b
+          Local variable names: board, b
 
-house - A rectangular greenhouse, defined by the coordinates of the upper left 
-        and lower right corners.
+* house - A rectangular greenhouse, defined by the coordinates of the upper left 
+          and lower right corners.
 
-        (defstruct house ...)
+          (defstruct house ...)
 
-        Local variable names: house, h, h1, h2
+          Local variable names: house, h, h1, h2
 
-layout - A list of houses that cover all strawberries for a board.
+* layout - A list of houses that cover all strawberries for a board.
 
-        Local variable names: layout
+          Local variable names: layout
 
 Algorithm:
 ==========
 
 The boards are parsed from the input file.
 
-* *`\#'read-boards`* : open the file and read in each board, also parse each one 
-                     with \#'parse-board
+* *`#'read-boards`* : open the file and read in each board, also parse each one 
+                     with *`#'parse-board`*
 
 For each board:
 
 Start with a single layout with one house per strawberry, giving us, say, n 
 houses to start with.
 
-* *`\#'parse-board`* : takes a board and provides a layout with one greenhouse per 
+* *`#'parse-board`* : takes a board and provides a layout with one greenhouse per 
                        strawberry, parsed from the text from the file
 
 Now we don't have to think about strawberries, only ways to reduce the number of 
@@ -107,9 +107,9 @@ Subject to some pruning of the search space, try merging different pairs of
 houses together in different ways to get several layouts with less houses. This 
 is called a reduction.
 
-* *`\#'merge-houses`* : takes two houses and returns a new house that encloses both
+* *`#'merge-houses`* : takes two houses and returns a new house that encloses both
 
-* *`\#'merge-waste`*  : how much space is wasted by the merge, e.g.
+* *`#'merge-waste`*  : how much space is wasted by the merge, e.g.
 
         ....                          ....
         ..A.                          .AA.
@@ -127,13 +127,13 @@ with a low enough number of greenhouses to qualify.
 
 Because each reduction must reduce the number of houses by at least 1, the 
 maximum depth of the tree is n. However, the number of reductions possible for 
-a layout with m houses could be as large as (m * (m - 1) / 2).
+a layout with m houses could be as large as `(m * (m - 1) / 2)`.
 
 The search space is very wide, but not very deep. A depth first search will 
 require less intermediate storage for the "to do" list of layouts to consider 
 reducing.
 
-* *`\#'depth-first-search`* : takes a board and searches for the best layout of 
+* *`#'depth-first-search`* : takes a board and searches for the best layout of 
                               greenhouses for it.
 
 Reducing the search space:
@@ -148,7 +148,7 @@ greenhouses below the maximum number allowed.
   another greenhouse. This also protects us from generating layouts where 
   greenhouses overlap.
 
-  *`\#'safe-merges`* : filter a list of merges and return only those that don't 
+  *`#'safe-merges`* : filter a list of merges and return only those that don't 
                        overlap with another house in the layout.
 
 * Perform trivial merges regularly without trying each combination (but don't 
@@ -156,7 +156,7 @@ greenhouses below the maximum number allowed.
   favors fewer houses if no extra space is wasted (actually, 9 or less extra 
   spaces are wasted).
 
-  *`\#'trivial-merges`* : perform all such merges possible, e.g.
+  *`#'trivial-merges`* : perform all such merges possible, e.g.
 
         ....             ....
         .A..             .A..
@@ -170,14 +170,13 @@ greenhouses below the maximum number allowed.
         .BC. will not change because B is contested
         ....
 
-        i.e. {A,B} or {B,C} can be trivially merged, 
-             but {A,C} cannot
+      i.e. {A,B} or {B,C} can be trivially merged, but {A,C} cannot.
 
 * Only consider merges with least waste at each iteration of reduction. This 
   means that if there are several possible reductions of a layout, only those 
   with the least amount of wasted space will be considered.
 
-  *`\#'least-waste-merges`* : filter a set of candidate merges leaving only those 
+  *`#'least-waste-merges`* : filter a set of candidate merges leaving only those 
                               which introduce the least amount of wasted space.
 
 
