@@ -15,51 +15,51 @@ them for posting such an interesting puzzle.
 
 Here is their description of the problem:
 
-Strawberry Fields
-
-Strawberries are growing in a rectangular field of length and width at
-most 50. You want to build greenhouses to enclose the
-strawberries. Greenhouses are rectangular, axis-aligned with the field
-(i.e., not diagonal), and may not overlap. The cost of each greenhouse
-is $10 plus $1 per unit of area covered.
-
-Write a program that chooses the best number of greenhouses to build,
-and their locations, so as to enclose all the strawberries as cheaply
-as possible. Heuristic solutions that may not always produce the
-lowest possible cost will be accepted: seek a reasonable tradeoff of
-efficiency and optimality.
-
-Your program must read a small integer 1 ≤ N ≤ 10 representing the
-maximum number of greenhouses to consider, and a matrix representation
-of the field, in which the '@' symbol represents a strawberry. Output
-must be a copy of the original matrix with letters used to represent
-greenhouses, preceded by the covering's cost. Here is an example
-input-output pair:
-
-    Input
-    4
-    ..@@@@@...............
-    ..@@@@@@........@@@...
-    .....@@@@@......@@@...
-    .......@@@@@@@@@@@@...
-    .........@@@@@........
-    .........@@@@@........
-
-    Output
-    90
-    ..AAAAAAAA............
-    ..AAAAAAAA....CCCCC...
-    ..AAAAAAAA....CCCCC...
-    .......BBBBBBBCCCCC...
-    .......BBBBBBB........
-    .......BBBBBBB........
-
-In this example, the solution cost of $90 is computed as (10+8*3) +
-(10+7*3) + (10+5*3).
- 
-Run your program on the 9 sample inputs found in this file and report
-the total cost of the 9 solutions found by your program, as well as
-each individual solution.
+> Strawberry Fields
+> 
+> Strawberries are growing in a rectangular field of length and width at
+> most 50. You want to build greenhouses to enclose the
+> strawberries. Greenhouses are rectangular, axis-aligned with the field
+> (i.e., not diagonal), and may not overlap. The cost of each greenhouse
+> is $10 plus $1 per unit of area covered.
+> 
+> Write a program that chooses the best number of greenhouses to build,
+> and their locations, so as to enclose all the strawberries as cheaply
+> as possible. Heuristic solutions that may not always produce the
+> lowest possible cost will be accepted: seek a reasonable tradeoff of
+> efficiency and optimality.
+> 
+> Your program must read a small integer 1 ≤ N ≤ 10 representing the
+> maximum number of greenhouses to consider, and a matrix representation
+> of the field, in which the '@' symbol represents a strawberry. Output
+> must be a copy of the original matrix with letters used to represent
+> greenhouses, preceded by the covering's cost. Here is an example
+> input-output pair:
+> 
+>     Input
+>     4
+>     ..@@@@@...............
+>     ..@@@@@@........@@@...
+>     .....@@@@@......@@@...
+>     .......@@@@@@@@@@@@...
+>     .........@@@@@........
+>     .........@@@@@........
+> 
+>     Output
+>     90
+>     ..AAAAAAAA............
+>     ..AAAAAAAA....CCCCC...
+>     ..AAAAAAAA....CCCCC...
+>     .......BBBBBBBCCCCC...
+>     .......BBBBBBB........
+>     .......BBBBBBB........
+> 
+> In this example, the solution cost of $90 is computed as (10+8*3) +
+> (10+7*3) + (10+5*3).
+>  
+> Run your program on the 9 sample inputs found in this file and report
+> the total cost of the 9 solutions found by your program, as well as
+> each individual solution.
 
 Terminology:
 ============
@@ -88,16 +88,16 @@ Algorithm:
 
 The boards are parsed from the input file.
 
-\#'read-boards     : open the file and read in each board, also parse each one 
-                    with \#'parse-board
+* *`\#'read-boards`* : open the file and read in each board, also parse each one 
+                     with \#'parse-board
 
 For each board:
 
 Start with a single layout with one house per strawberry, giving us, say, n 
 houses to start with.
 
-\#'parse-board : takes a board and provides a layout with one greenhouse per 
-                strawberry, parsed from the text from the file
+* *`\#'parse-board`* : takes a board and provides a layout with one greenhouse per 
+                       strawberry, parsed from the text from the file
 
 Now we don't have to think about strawberries, only ways to reduce the number of 
 houses, at the risk of enclosing space where there was no strawberry (creating 
@@ -107,15 +107,14 @@ Subject to some pruning of the search space, try merging different pairs of
 houses together in different ways to get several layouts with less houses. This 
 is called a reduction.
 
-\#'merge-houses : takes two houses and returns a new house 
-                 that encloses both
-\#'merge-waste  : how much space is wasted by the merge
+* *`\#'merge-houses`* : takes two houses and returns a new house that encloses both
 
-e.g.
-      ....                          ....
-      ..A.                          .AA.
-      .B.. has the single reduction .AA. with 2 waste.
-      ....                          ....
+* *`\#'merge-waste`*  : how much space is wasted by the merge, e.g.
+
+        ....                          ....
+        ..A.                          .AA.
+        .B.. has the single reduction .AA. with 2 waste.
+        ....                          ....
 
 Each of those new layouts can be further reduced in several ways, and this 
 reduction of layouts can be seen as exploring a tree where the root is the 
@@ -134,8 +133,8 @@ The search space is very wide, but not very deep. A depth first search will
 require less intermediate storage for the "to do" list of layouts to consider 
 reducing.
 
-\#'depth-first-search : takes a board and searches for the best layout of 
-                       greenhouses for it.
+* *`\#'depth-first-search`* : takes a board and searches for the best layout of 
+                              greenhouses for it.
 
 Reducing the search space:
 ==========================
@@ -145,43 +144,41 @@ reduces the number of greenhouses. Also, one reduction may increase the cost,
 but enble other cost-reducing merges to take place or get the number of total 
 greenhouses below the maximum number allowed.
 
-- Only consider reductions where merging two greenhouses won't overlap with 
+* Only consider reductions where merging two greenhouses won't overlap with 
   another greenhouse. This also protects us from generating layouts where 
   greenhouses overlap.
 
-  \#'safe-merges : filter a list of merges and return only those that don't 
-                  overlap with another house in the layout.
+  *`\#'safe-merges`* : filter a list of merges and return only those that don't 
+                       overlap with another house in the layout.
 
-- Perform trivial merges regularly without trying each combination (but don't 
+* Perform trivial merges regularly without trying each combination (but don't 
   merge contested houses). These are a no-brainer because the cost function 
   favors fewer houses if no extra space is wasted (actually, 9 or less extra 
   spaces are wasted).
 
-  \#'trivial-merges : perform all such merges possible
+  *`\#'trivial-merges`* : perform all such merges possible, e.g.
 
-e.g.
+        ....             ....
+        .A..             .A..
+        .B.. will become .A.. via trivial merge
+        .C..             .A..
 
-      ....             ....
-      .A..             .A..
-      .B.. will become .A.. via trivial merge
-      .C..             .A..
+        but
 
-but
+        ....
+        .A..
+        .BC. will not change because B is contested
+        ....
 
-      ....
-      .A..
-      .BC. will not change because B is contested
-      ....
-
-      i.e. {A,B} or {B,C} can be trivially merged, 
-           but {A,C} cannot
+        i.e. {A,B} or {B,C} can be trivially merged, 
+             but {A,C} cannot
 
 * Only consider merges with least waste at each iteration of reduction. This 
   means that if there are several possible reductions of a layout, only those 
   with the least amount of wasted space will be considered.
 
-  \#'least-waste-merges : filter a set of candidate merges leaving only those 
-                         which introduce the least amount of wasted space.
+  *`\#'least-waste-merges`* : filter a set of candidate merges leaving only those 
+                              which introduce the least amount of wasted space.
 
 
 
