@@ -123,5 +123,5 @@ Conclusions
 
 AllInts7 is our winner, allocating space for and filling in every possible Java int value in 2.0 seconds. The
 main takeaway from this exercise it that we cannot think of the int values in Java as an infinite set, nor as
-a set of values that are to expensive to explore. Brute-force algorithms to test every int value for some
+a set of values that are too expensive to explore. Brute-force algorithms to test every int value for some
 property are very feasible. And if you have 4,000 machines handy you can visit all long values in about a month.
