@@ -24,6 +24,16 @@ module triangularPyramid(sideLength=20) {
         faces=[ [0,3,1],[1,3,2],[2,3,0],[0,1,2] ]);
 }
 
+module trianglularConnector(sideLength = 20) {
+    height = sideLength * sin(60);
+
+    polyhedron(
+        points = [ [0,0, 0], [sideLength,0, 0], [sideLength * 0.5, height,  0],
+                   [0,0,10], [sideLength,0,10], [sideLength * 0.5, height, 10] ],
+        faces = [ /* bottom */ [0, 1, 2], /* top */ [3, 5, 4],
+            /* 3 sides: */ [0, 3, 4, 1], [1, 4, 5, 2], [2, 5, 3, 0] ]);
+}
+
 module TopPiece() {
     // The top
     scale([1, 1, 1.2]) // is stretched out vertically a bit
@@ -72,6 +82,5 @@ module BottomPiece() {
     scale([1, 1, 1.5]) // is stretched out vertically a bit
     translate([20,0,0])
     rotate([0,180,0])
-    translate([0,0,1])
     triangularPyramid();
 }
