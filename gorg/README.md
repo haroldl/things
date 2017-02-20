@@ -1,7 +1,7 @@
 Gorg Super-Chip
 =
 
-Tip: "Why is it called a *super* chip?"
+Tip: "Why is it called a *super* chip?"  
 Oh: "It's mostly marketing."
 
 I'm working on a 3-d model of the Gorg Super-Chip from the movie
