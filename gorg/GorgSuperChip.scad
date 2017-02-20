@@ -6,6 +6,7 @@
 
 use <Common.scad>;
 
+translate([-10, -10 * tan(30), 10])
 color("DimGrey") {
       topHoleScale = 0.7;
       mainTopY = 20 * 0.5 * tan(30);
