@@ -1,5 +1,8 @@
-// Gorg super chip
+// Gorg Super-Chip
 // (it's mostly marketing)
+
+// Using this picture as a reference:
+// http://dreamworks.wikia.com/wiki/Gorg_Super-Chip
 
 // Create a 3-d pyramid with a triangular base (thus 4 sides/faces).
 module triangularPyramid(sideLength=20) {
@@ -28,36 +31,51 @@ module triangularPyramid(sideLength=20) {
 }
 
 color("DimGrey") {
-  normalHeight = sqrt(10 * 10 + 10 * 10);
-
-  /*
-  // The taller bottom pyramid
-  polyhedron(
-    // the four points at base
-    points=[ [10,10,0],[10,-10,0],[-10,-10,0],[-10,10,0], 
-    // the apex point
-             [0,0, -2 * normalHeight]  ],
-    // each triangle side
-    faces=[ [0,1,4],[1,2,4],[2,3,4],[3,0,4],
-    // two triangles for square base
-                [1,0,3],[2,1,3] ]);
-
-  // The smaller top pyramid
-  polyhedron(
-    // the four points at base
-    points=[ [10,10,0],[10,-10,0],[-10,-10,0],[-10,10,0], 
-    // the apex point
-             [0,0, 1.2 * normalHeight]  ],
-    // each triangle side
-    faces=[ [0,1,4],[1,2,4],[2,3,4],[3,0,4],
-    // two triangles for square base
-                [1,0,3],[2,1,3] ]);
-*/
-
-  // 75% scaled smaller pyramid that will be wedged into the top face
-  //translate([17.5,0,0])
-  //rotate([0,-90,0])
+  // The top
+  scale([1, 1, 1.2]) // is stretched out vertically a bit
   triangularPyramid();
+
+  //
+  // 3 little pyramids sticking out of the top:
+  //
+  littleScale = 0.6;
+
+  // 1. is on the x axis
+  translate([10 * (1 - littleScale), 0, 8])
+  scale(littleScale)
+  scale([1, 1, 1.2])
+  triangularPyramid();
+
+  mainTopY = 20 * 0.5 * tan(30);
+  littleTopY = mainTopY * littleScale;
+  topToTopDist = mainTopY - littleTopY;
+
+  // 2. is rotated clockwise 120 degrees around the top-to-bottom line
+  //    To do that rotation, translate the pyramid to be centered over 0,0,z
+  //    then rotate, then untranslate.
+  //    However, rotating a triangle by 120 degrees is the same triangle, so
+  //    we will just move the thing a little off in the -x, +y direction :-)
+  translate([-1 * topToTopDist * cos(30), topToTopDist * (1 + sin(30)), 0])
+  translate([10 * (1 - littleScale), 0, 8])
+  scale(littleScale)
+  scale([1, 1, 1.2])
+  triangularPyramid();
+
+  // 3. is rotated counter-clockwise 120 degrees around the top-to-bottom line
+  //    To do that rotation, translate the pyramid to be centered over 0,0,z
+  //    then rotate, then untranslate.
+  //    However, rotating a triangle by 120 degrees is the same triangle, so
+  //    we will just move the thing a little off in the +x, +y direction :-)
+  translate([topToTopDist * cos(30), topToTopDist * (1 + sin(30)), 0])
+  translate([10 * (1 - littleScale), 0, 8])
+  scale(littleScale)
+  scale([1, 1, 1.2])
+  triangularPyramid();
+
+  // The bottom
+  scale([1, 1, 1.5]) // is stretched out vertically a bit
   translate([20,0,0])
-  triangularPyramid(sideLength=30);
+  rotate([0,180,0])
+  translate([0,0,1])
+  triangularPyramid();
 }
