@@ -34,6 +34,33 @@ module trianglularConnector(sideLength = 20) {
             /* 3 sides: */ [0, 3, 4, 1], [1, 4, 5, 2], [2, 5, 3, 0] ]);
 }
 
+function polarToXYZ(thetaXY, thetaZ, radius) =
+    [ radius * cos(thetaXY) * cos(thetaZ),
+      radius * sin(thetaXY) * cos(thetaZ),
+      radius * sin(thetaZ) ];
+
+//
+// Create a wedge that goes from the origin out to form a line between two
+// points. The points are given in polar coordinates:
+// * thetaXY is the rotation about the Z axis
+// * thetaZ is the rotation up from the XY plane
+//
+module wedgeThing(theta1XY=0, theta1Z=0, theta2XY=0, theta2Z=45, deltaZ=0) {
+    // Figure out an orthogonal vector to the line so that we can give it
+    // some width:
+    dXY = theta2XY - theta1XY;
+    dZ = theta2Z - theta1Z;
+    orthoVec = -0.15 * [dZ, dXY];
+
+    translate([0,0,deltaZ])
+    polyhedron(points=[[0,0,0],
+            polarToXYZ(-0.15 * dZ + theta1XY, -0.15 * dXY + theta1Z, 30),
+            polarToXYZ( 0.15 * dZ + theta1XY,  0.15 * dXY + theta1Z, 30),
+            polarToXYZ( 0.15 * dZ + theta2XY,  0.15 * dXY + theta2Z, 30),
+            polarToXYZ(-0.15 * dZ + theta2XY, -0.15 * dXY + theta2Z, 30)],
+        faces = [[1,2,3,4], [0,2,1], [0,3,2], [0,4,3], [0,1,4]]);
+}
+
 module TopPiece() {
     // The top
     scale([1, 1, 1.2]) // is stretched out vertically a bit
