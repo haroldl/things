@@ -28,8 +28,8 @@ module trianglularConnector(sideLength = 20) {
     height = sideLength * sin(60);
 
     polyhedron(
-        points = [ [0,0, 0], [sideLength,0, 0], [sideLength * 0.5, height,  0],
-                   [0,0,10], [sideLength,0,10], [sideLength * 0.5, height, 10] ],
+        points = [ [0,0,-5], [sideLength,0, -5], [sideLength * 0.5, height, -5],
+                   [0,0,10], [sideLength,0, 10], [sideLength * 0.5, height, 10] ],
         faces = [ /* bottom */ [0, 1, 2], /* top */ [3, 5, 4],
             /* 3 sides: */ [0, 3, 4, 1], [1, 4, 5, 2], [2, 5, 3, 0] ]);
 }
